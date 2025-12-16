@@ -1,0 +1,25 @@
+// Define an async function to fetch document content from the Google Docs API
+export async function getDocumentContent(params: { documentId: string }): Promise<{ result: string }> {
+  // Destructure the documentId from the params object
+  const { documentId } = params;
+
+  // Construct the URL with the documentId path parameter
+  const url = `https://docs.googleapis.com/v1/documents/${documentId}`;
+
+  // Use fetchWithZapier to make the API request
+  const response = await fetchWithZapier(url, {
+    method: 'GET',
+  });
+
+  // Throw an error if the response is not OK
+  await response.throwErrorIfNotOk();
+
+  // Parse the JSON response
+  const data = await response.json();
+
+  // Extract the document's body content as plain text
+  const bodyContent = JSON.stringify(data.body);
+
+  // Return the body content in a result object
+  return { result: bodyContent };
+}
