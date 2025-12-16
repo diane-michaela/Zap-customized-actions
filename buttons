@@ -1,0 +1,90 @@
+export async function sendHiringRequestMessageToSlack({
+  channelId,
+  team,
+  hiringManager,
+  jobTitle,
+  links,
+  salary
+}: {
+  channelId: string;
+  team: string;
+  hiringManager: string;
+  jobTitle: string;
+  links: string;
+  salary: string;
+}): Promise<{ result: string }> {
+  // Construct the message text with the hiring request details
+  const messageText = `*Hiring Request Details:*\n- *Team:* ${team}\n- *Hiring Manager:* ${hiringManager}\n- *Job Title:* ${jobTitle}\n- *Links:* ${links}\n- *Salary:* ${salary}`;
+
+  // Define the base URL for the Zapier webhook
+  const zapierWebhookBaseUrl = "place_holder_webhook_key";
+
+  // Define the buttons with their respective styles and URLs
+  const buttons = [
+    {
+      text: "Tasha",
+      style: "primary",
+      url: `${zapierWebhookBaseUrl}?assignee=tasha`
+    },
+    {
+      text: "Diane",
+      style: "primary",
+      url: `${zapierWebhookBaseUrl}?assignee=diane`
+    },
+    {
+      text: "MJ",
+      style: "danger",
+      url: `${zapierWebhookBaseUrl}?assignee=mj`
+    },
+    {
+      text: "Sito",
+      style: "danger",
+      url: `${zapierWebhookBaseUrl}?assignee=sito`
+    },
+    {
+      text: "Maria",
+      style: "danger",
+      url: `${zapierWebhookBaseUrl}?assignee=maria`
+    }
+  ];
+
+  // Construct the attachments with buttons
+  const attachments = JSON.stringify([
+    {
+      text: "Assign recruiter:",
+      fallback: "You are unable to choose a recruiter",
+      callback_id: "recruiter_assignment",
+      actions: buttons.map(button => ({
+        type: "button",
+        text: button.text,
+        style: button.style,
+        url: button.url
+      }))
+    }
+  ]);
+
+  // Prepare the request body
+  const requestBody = {
+    channel: channelId,
+    text: messageText,
+    attachments: attachments
+  };
+
+  // Send the message using the Slack API
+  const response = await fetchWithZapier("https://slack.com/api/chat.postMessage", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(requestBody)
+  });
+
+  // Throw an error if the response is not ok
+  await response.throwErrorIfNotOk();
+
+  // Parse the response JSON
+  const responseData = await response.json();
+
+  // Return the result
+  return { result: responseData.ts };
+}
